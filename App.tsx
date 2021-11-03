@@ -8,7 +8,6 @@ import useCachedResources from "./hooks/useCachedResources";
 import useColorScheme from "./hooks/useColorScheme";
 import Navigation from "./navigation";
 import { withAuthenticator } from "aws-amplify-react-native";
-
 Amplify.configure(config);
 
 function App() {
