@@ -25,6 +25,8 @@ import { RootStackParamList } from "../types";
 import LinkingConfiguration from "./LinkingConfiguration";
 import ChatRoomScreen from "../screens/ChatRoomScreen";
 import { Feather } from "@expo/vector-icons";
+import UsersScreen from "../screens/UsersScreen";
+import { useNavigation } from "@react-navigation/core";
 
 export default function Navigation({
   colorScheme,
@@ -56,6 +58,13 @@ function RootNavigator() {
         options={{ headerTitle: () => <HomeHeader /> }}
       />
       <Stack.Screen
+        name="Users"
+        component={UsersScreen}
+        options={{
+          title: "Users",
+        }}
+      />
+      <Stack.Screen
         name="ChatRoom"
         component={ChatRoomScreen}
         options={{
@@ -75,6 +84,7 @@ function RootNavigator() {
 
 const HomeHeader = (props) => {
   const { width } = useWindowDimensions();
+  const navigation = useNavigation();
   return (
     <View
       style={{
@@ -100,12 +110,14 @@ const HomeHeader = (props) => {
           color="grey"
           style={{ marginHorizontal: 10 }}
         />
-        <Feather
-          name="edit-2"
-          size={24}
-          color="grey"
-          style={{ marginHorizontal: 10 }}
-        />
+        <Pressable onPress={() => navigation.navigate("Users")}>
+          <Feather
+            name="edit-2"
+            size={24}
+            color="grey"
+            style={{ marginHorizontal: 10 }}
+          />
+        </Pressable>
       </View>
     </View>
   );
