@@ -8,7 +8,6 @@ type Message @model @auth(rules: [{allow: public}]) @key(name: "byUser", fields:
 type ChatRoom @model @auth(rules: [{allow: public}]) {
   id: ID!
   newMessages: Int
-  untitledfield: String
   LastMessage: Message @connection
   Messages: [Message] @connection(keyName: "byChatRoom", fields: ["id"])
   ChatRoomUsers: [ChatRoomUser] @connection(keyName: "byChatRoom", fields: ["id"])
@@ -30,3 +29,4 @@ type ChatRoomUser @model(queries: null) @key(name: "byChatRoom", fields: ["chatr
   chatroom: ChatRoom! @connection(fields: ["chatroomID"])
   user: User! @connection(fields: ["userID"])
 }
+ 

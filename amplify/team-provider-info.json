@@ -9,7 +9,8 @@
       "UnauthRoleName": "amplify-signalclone-staging-162113-unauthRole",
       "StackName": "amplify-signalclone-staging-162113",
       "StackId": "arn:aws:cloudformation:us-east-1:181323088283:stack/amplify-signalclone-staging-162113/bc05c840-3b2f-11ec-8afb-0a0bb2880c01",
-      "AmplifyAppId": "d35857bcraaocj"
+      "AmplifyAppId": "d35857bcraaocj",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-signalclone-staging-162113-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
       "auth": {
