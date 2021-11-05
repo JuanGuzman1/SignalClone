@@ -1,8 +1,29 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-const myId = "u1";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { DataStore, Auth } from "aws-amplify";
+import { User } from "../../src/models";
+
 const Message = ({ message }) => {
-  const isMe = message.user.id === myId;
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const [isMe, setIsMe] = useState<Boolean>(false);
+
+  useEffect(() => {
+    DataStore.query(User, message.userID).then(setUser);
+  }, []);
+  useEffect(() => {
+    const checkIfMe = async () => {
+      if (!user) {
+        return;
+      }
+      const authUser = await Auth.currentAuthenticatedUser();
+      setIsMe(user.id === authUser.attributes.sub);
+    };
+    checkIfMe();
+  }, [user]);
+
+  if (!user) {
+    return <ActivityIndicator />;
+  }
   return (
     <View
       style={[
