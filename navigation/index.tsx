@@ -27,6 +27,7 @@ import ChatRoomScreen from "../screens/ChatRoomScreen";
 import { Feather } from "@expo/vector-icons";
 import UsersScreen from "../screens/UsersScreen";
 import { useNavigation } from "@react-navigation/core";
+import ChatRoomHeader from "./ChatRoomHeader";
 
 export default function Navigation({
   colorScheme,
@@ -67,11 +68,11 @@ function RootNavigator() {
       <Stack.Screen
         name="ChatRoom"
         component={ChatRoomScreen}
-        options={{
-          headerTitle: ChatRoomHeader,
+        options={({ route }) => ({
+          headerTitle: () => <ChatRoomHeader id={route.params?.id} />,
           headerBackTitleVisible: false,
           // headerBackVisible: false,
-        }}
+        })}
       />
       <Stack.Screen
         name="NotFound"
@@ -118,46 +119,6 @@ const HomeHeader = (props) => {
             style={{ marginHorizontal: 10 }}
           />
         </Pressable>
-      </View>
-    </View>
-  );
-};
-
-const ChatRoomHeader = (props) => {
-  const { width } = useWindowDimensions();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: width - 60,
-        padding: 10,
-        alignItems: "center",
-        marginLeft: -15,
-      }}
-    >
-      <Image
-        source={{
-          uri: "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/elon.png",
-        }}
-        style={{ width: 30, height: 30, borderRadius: 30 }}
-      />
-      <Text style={{ flex: 1, marginLeft: 30, fontWeight: "bold" }}>
-        {props.children}
-      </Text>
-      <View style={{ flexDirection: "row" }}>
-        <Feather
-          name="camera"
-          size={24}
-          color="grey"
-          style={{ marginHorizontal: 10 }}
-        />
-        <Feather
-          name="edit-2"
-          size={24}
-          color="grey"
-          style={{ marginHorizontal: 10 }}
-        />
       </View>
     </View>
   );

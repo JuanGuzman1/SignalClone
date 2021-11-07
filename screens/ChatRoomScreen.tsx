@@ -59,7 +59,7 @@ const ChatRoomScreen = () => {
     setMessages(fetchedMessages);
   };
 
-  navigation.setOptions({ title: "oso" });
+
   if (!chatRoom) {
     return <ActivityIndicator />;
   }
