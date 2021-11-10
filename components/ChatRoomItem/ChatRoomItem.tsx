@@ -4,10 +4,13 @@ import { Text, View, Image, Pressable, ActivityIndicator } from "react-native";
 import styles from "./styles";
 import { DataStore, Auth } from "aws-amplify";
 import { ChatRoomUser, Message, User } from "../../src/models";
+import moment from "moment";
 
 export default function ChatRoomItem({ chatRoom }) {
   const [user, setUser] = useState<User | null>(null); //the display user
-  const [lastMessage, setLastMessage] = useState<Message|undefined>(undefined);
+  const [lastMessage, setLastMessage] = useState<Message | undefined>(
+    undefined
+  );
 
   const navigation = useNavigation();
 
@@ -17,17 +20,21 @@ export default function ChatRoomItem({ chatRoom }) {
         .filter((chatRoomUser) => chatRoomUser.chatroom.id === chatRoom.id)
         .map((chatRoomUser) => chatRoomUser.user);
       const authUser = await Auth.currentAuthenticatedUser();
-      setUser(fetchedUsers.find((user) => user.id !== authUser.attributes.sub) || null);
+      setUser(
+        fetchedUsers.find((user) => user.id !== authUser.attributes.sub) || null
+      );
     };
     fetchUsers();
   }, []);
 
-  useEffect(()=>{
-    if(!chatRoom.chatRoomLastMessageId){
+  useEffect(() => {
+    if (!chatRoom.chatRoomLastMessageId) {
       return;
     }
-    DataStore.query(Message,chatRoom.chatRoomLastMessageId).then(setLastMessage);
-  },[]);
+    DataStore.query(Message, chatRoom.chatRoomLastMessageId).then(
+      setLastMessage
+    );
+  }, []);
 
   const onPress = () => {
     navigation.navigate("ChatRoom", { id: chatRoom.id });
@@ -53,7 +60,9 @@ export default function ChatRoomItem({ chatRoom }) {
       <View style={styles.rightContainer}>
         <View style={styles.row}>
           <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.text}>{lastMessage?.createdAt}</Text>
+          <Text style={styles.text}>
+            {moment(lastMessage?.createdAt).fromNow()}
+          </Text>
         </View>
         <Text numberOfLines={1} style={styles.text}>
           {lastMessage?.content}
