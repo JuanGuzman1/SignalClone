@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Text,
 } from "react-native";
 import {
   AntDesign,
@@ -21,12 +22,16 @@ import { ChatRoom } from "../../src/models";
 import EmojiSelector from "react-native-emoji-selector";
 import * as ImagePicker from "expo-image-picker";
 import { v4 as uuidv4 } from "uuid";
+import { Audio, AVPlaybackStatus } from "expo-av";
+import AudioPlayer from "../AudioPlayer";
 
 const MessageInput = ({ chatRoom }) => {
   const [message, setMessage] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [soundURI, setSoundURI] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -34,6 +39,7 @@ const MessageInput = ({ chatRoom }) => {
         const libraryResponse =
           await ImagePicker.requestMediaLibraryPermissionsAsync();
         const photoResponse = await ImagePicker.requestCameraPermissionsAsync();
+        await Audio.requestPermissionsAsync();
         if (
           libraryResponse.status !== "granted" ||
           photoResponse.status !== "granted"
@@ -76,6 +82,8 @@ const MessageInput = ({ chatRoom }) => {
   const onPress = () => {
     if (image) {
       sendImage();
+    } else if (soundURI) {
+      sendAudio();
     } else if (message) {
       sendMessage();
     } else {
@@ -88,6 +96,7 @@ const MessageInput = ({ chatRoom }) => {
     setIsEmojiPickerOpen(false);
     setImage(null);
     setProgress(0);
+    setSoundURI(null);
   };
 
   //image picker
@@ -122,7 +131,7 @@ const MessageInput = ({ chatRoom }) => {
     if (!image) {
       return;
     }
-    const blob = await getImageBlob();
+    const blob = await getBlob(image);
     const { key } = await Storage.put(`${uuidv4()}.png`, blob, {
       progressCallback,
     });
@@ -142,13 +151,73 @@ const MessageInput = ({ chatRoom }) => {
     resetFields();
   };
 
-  const getImageBlob = async () => {
-    if (!image) {
-      return null;
-    }
-    const response = await fetch(image);
+  const getBlob = async (uri: string) => {
+    const response = await fetch(uri);
     const blob = response.blob();
     return blob;
+  };
+
+  //Audio
+
+  async function startRecording() {
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      console.log("Starting recording..");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+      );
+      setRecording(recording);
+      console.log("Recording started");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  }
+
+  async function stopRecording() {
+    if (!recording) {
+      return;
+    }
+    console.log("Stopping recording..");
+    setRecording(null);
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+    });
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    console.log("Recording stopped and stored at", uri);
+    if (!uri) {
+      return;
+    }
+    setSoundURI(uri);
+  }
+
+  const sendAudio = async () => {
+    if (!soundURI) {
+      return;
+    }
+    const uriParts = soundURI.split(".");
+    const extension = uriParts[uriParts.length - 1];
+    const blob = await getBlob(soundURI);
+    const { key } = await Storage.put(`${uuidv4()}.${extension}`, blob, {
+      progressCallback,
+    });
+
+    //send audio
+    const user = await Auth.currentAuthenticatedUser();
+    const newMessage = await DataStore.save(
+      new Message({
+        content: message,
+        audio: key,
+        userID: user.attributes.sub,
+        chatroomID: chatRoom.id,
+      })
+    );
+
+    updateLastMessage(newMessage);
+    resetFields();
   };
 
   return (
@@ -190,6 +259,9 @@ const MessageInput = ({ chatRoom }) => {
           </Pressable>
         </View>
       )}
+
+      {soundURI && <AudioPlayer soundURI={soundURI} />}
+
       <View style={styles.row}>
         <View style={styles.inputContainer}>
           <Pressable onPress={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}>
@@ -225,15 +297,17 @@ const MessageInput = ({ chatRoom }) => {
             />
           </Pressable>
 
-          <MaterialCommunityIcons
-            name="microphone-outline"
-            size={24}
-            color="#595959"
-            style={styles.icon}
-          />
+          <Pressable onPressIn={startRecording} onPressOut={stopRecording}>
+            <MaterialCommunityIcons
+              name={recording ? "microphone" : "microphone-outline"}
+              size={24}
+              color={recording ? "red" : "#595959"}
+              style={styles.icon}
+            />
+          </Pressable>
         </View>
         <Pressable onPress={onPress} style={styles.buttonContainer}>
-          {message || image ? (
+          {message || image || soundURI ? (
             <Ionicons name="send" size={18} color="white" />
           ) : (
             <AntDesign name="plus" size={24} color="white" />
