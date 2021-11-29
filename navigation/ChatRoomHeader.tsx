@@ -3,6 +3,7 @@ import { View, Image, Text, useWindowDimensions } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { DataStore, Auth } from "aws-amplify";
 import { ChatRoomUser, User } from "../src/models";
+import moment from "moment";
 
 const ChatRoomHeader = ({ id, children }) => {
   const { width } = useWindowDimensions();
@@ -12,6 +13,7 @@ const ChatRoomHeader = ({ id, children }) => {
     if (!id) {
       return;
     }
+
     const fetchUsers = async () => {
       const fetchedUsers = (await DataStore.query(ChatRoomUser))
         .filter((chatRoomUser) => chatRoomUser.chatroom.id === id)
@@ -23,6 +25,20 @@ const ChatRoomHeader = ({ id, children }) => {
     };
     fetchUsers();
   }, []);
+
+  const getLastOnlineText = () => {
+    if (!user?.lastOnlineAt) {
+      return;
+    }
+    //if lastOnlineAt is less than 5 minutes ago , show him online
+    const lastOnlineDiffMS = moment().diff(moment(user?.lastOnlineAt));
+    if (lastOnlineDiffMS < 5 * 60 * 1000) {
+      //less than 5 minutes
+      return "online";
+    } else {
+      return `Last seen ${moment(user.lastOnlineAt).fromNow()}`;
+    }
+  };
 
   return (
     <View
@@ -41,9 +57,11 @@ const ChatRoomHeader = ({ id, children }) => {
         }}
         style={{ width: 30, height: 30, borderRadius: 30 }}
       />
-      <Text style={{ flex: 1, marginLeft: 30, fontWeight: "bold" }}>
-        {user?.name}
-      </Text>
+      <View style={{ flex: 1, marginLeft: 30 }}>
+        <Text style={{ fontWeight: "bold" }}>{user?.name}</Text>
+        <Text>{getLastOnlineText()}</Text>
+      </View>
+
       <View style={{ flexDirection: "row" }}>
         <Feather
           name="camera"
