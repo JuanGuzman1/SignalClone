@@ -11,6 +11,7 @@ export default function ChatRoomItem({ chatRoom }) {
   const [lastMessage, setLastMessage] = useState<Message | undefined>(
     undefined
   );
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigation = useNavigation();
 
@@ -23,6 +24,7 @@ export default function ChatRoomItem({ chatRoom }) {
       setUser(
         fetchedUsers.find((user) => user.id !== authUser.attributes.sub) || null
       );
+      setIsLoading(false);
     };
     fetchUsers();
   }, []);
@@ -40,8 +42,8 @@ export default function ChatRoomItem({ chatRoom }) {
     navigation.navigate("ChatRoom", { id: chatRoom.id });
   };
 
-  if (!user) {
-    return <ActivityIndicator />;
+  if (isLoading) {
+    return <ActivityIndicator style={{ flex: 1 }} color="grey" />;
   }
 
   return (
