@@ -5,9 +5,19 @@ import { ChatRoom, User, ChatRoomUser } from "../../src/models";
 import { Auth, DataStore } from "aws-amplify";
 import { Feather } from "@expo/vector-icons";
 
-export default function UserItem({ user, onPress, isSelected }) {
+export default function UserItem({
+  user,
+  onPress,
+  onLongPress,
+  isSelected,
+  isAdmin = false,
+}) {
   return (
-    <Pressable onPress={onPress} style={styles.container}>
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={styles.container}
+    >
       <Image
         style={styles.image}
         source={{
@@ -17,6 +27,7 @@ export default function UserItem({ user, onPress, isSelected }) {
       <View style={styles.rightContainer}>
         <View style={styles.row}>
           <Text style={styles.name}>{user?.name}</Text>
+          {isAdmin && <Text>admin</Text>}
         </View>
       </View>
       {isSelected !== undefined && (

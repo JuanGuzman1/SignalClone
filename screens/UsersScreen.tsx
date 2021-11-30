@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, Pressable, SafeAreaView } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Pressable,
+  SafeAreaView,
+  Alert,
+} from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import UserItem from "../components/UserItem";
 import { Auth, DataStore } from "aws-amplify";
@@ -19,9 +26,13 @@ export default function UsersScreen() {
       const authUser = await Auth.currentAuthenticatedUser();
       const dbUser = await DataStore.query(User, authUser.attributes.sub);
 
+      if (!dbUser) {
+        Alert.alert("There was an error creating a group");
+        return;
+      }
       const newChatRoomData = {
         newMessages: 0,
-        admin: dbUser,
+        Admin: dbUser,
       };
       if (users.length > 1) {
         newChatRoomData.name = "New group";

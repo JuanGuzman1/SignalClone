@@ -28,6 +28,7 @@ import { Feather } from "@expo/vector-icons";
 import UsersScreen from "../screens/UsersScreen";
 import { useNavigation } from "@react-navigation/core";
 import ChatRoomHeader from "./ChatRoomHeader";
+import GroupInfoScreen from "../screens/GroupInfoScreen";
 
 export default function Navigation({
   colorScheme,
@@ -74,6 +75,7 @@ function RootNavigator() {
           // headerBackVisible: false,
         })}
       />
+      <Stack.Screen name="GroupInfoScreen" component={GroupInfoScreen} />
       <Stack.Screen
         name="NotFound"
         component={NotFoundScreen}
