@@ -21,11 +21,6 @@ export default function TabOneScreen() {
     fetchChatRooms();
   }, []);
 
-  const logOut = async () => {
-    await DataStore.clear();
-    Auth.signOut();
-  };
-
   return (
     <View style={styles.page}>
       <FlatList
@@ -33,19 +28,6 @@ export default function TabOneScreen() {
         renderItem={({ item }) => <ChatRoomItem chatRoom={item} />}
         showsVerticalScrollIndicator={false}
       />
-      <Pressable
-        onPress={logOut}
-        style={{
-          backgroundColor: "red",
-          height: 50,
-          margin: 10,
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: 50,
-        }}
-      >
-        <Text>Logout</Text>
-      </Pressable>
     </View>
   );
 }

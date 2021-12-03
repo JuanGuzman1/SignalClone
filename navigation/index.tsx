@@ -29,6 +29,7 @@ import UsersScreen from "../screens/UsersScreen";
 import { useNavigation } from "@react-navigation/core";
 import ChatRoomHeader from "./ChatRoomHeader";
 import GroupInfoScreen from "../screens/GroupInfoScreen";
+import Settings from "../screens/Settings";
 
 export default function Navigation({
   colorScheme,
@@ -81,6 +82,11 @@ function RootNavigator() {
         component={NotFoundScreen}
         options={{ title: "Oops!" }}
       />
+      <Stack.Screen
+        name="Settings"
+        component={Settings}
+        options={{ title: "Settings" }}
+      />
     </Stack.Navigator>
   );
 }
@@ -107,12 +113,14 @@ const HomeHeader = (props) => {
         Signal
       </Text>
       <View style={{ flexDirection: "row" }}>
-        <Feather
-          name="camera"
-          size={24}
-          color="grey"
-          style={{ marginHorizontal: 10 }}
-        />
+        <Pressable onPress={() => navigation.navigate("Settings")}>
+          <Feather
+            name="settings"
+            size={24}
+            color="grey"
+            style={{ marginHorizontal: 10 }}
+          />
+        </Pressable>
         <Pressable onPress={() => navigation.navigate("Users")}>
           <Feather
             name="edit-2"

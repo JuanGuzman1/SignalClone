@@ -22,6 +22,6 @@
       }
     },
     "apiName": "SignalClone",
-    "gqlSchemaPath": "/tmp/amplify-0f375efe-3086-4ba3-acc1-5cecdd0734ce/amplify/backend/api/SignalClone/schema.graphql"
+    "gqlSchemaPath": "/tmp/amplify-67b39826-233d-4b2d-902f-d41da72bdbbc/amplify/backend/api/SignalClone/schema.graphql"
   }
 }
