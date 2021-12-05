@@ -51,7 +51,7 @@ export default function ChatRoomItem({ chatRoom }) {
       <Image
         style={styles.image}
         source={{
-          uri: chatRoom.imageUri || user.imageUri,
+          uri: chatRoom.imageUri || user?.imageUri,
         }}
       />
       {!!chatRoom.newMessages ? (
@@ -61,7 +61,7 @@ export default function ChatRoomItem({ chatRoom }) {
       ) : null}
       <View style={styles.rightContainer}>
         <View style={styles.row}>
-          <Text style={styles.name}>{chatRoom.name || user.name}</Text>
+          <Text style={styles.name}>{chatRoom.name || user?.name}</Text>
           <Text style={styles.text}>
             {moment(lastMessage?.createdAt).fromNow()}
           </Text>

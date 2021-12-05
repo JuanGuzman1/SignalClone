@@ -16,10 +16,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { Message as MessageModel } from "../../src/models";
 import MessageReply from "../MessageReply";
 import { useActionSheet } from "@expo/react-native-action-sheet";
+import { box } from "tweetnacl";
+import {
+  decrypt,
+  getMyPrivateKey,
+  stringToUint8Array,
+} from "../../utils/crypto";
 
 const Message = (props) => {
   const { setAsMessageReply, message: propMessage } = props;
   const [message, setMessage] = useState<MessageModel>(propMessage);
+  const [decryptedContent, setDecryptedContent] = useState("");
   const [replyTo, setReplyTo] = useState<MessageModel | undefined>(undefined);
   const [user, setUser] = useState<User | undefined>(undefined);
   const [isMe, setIsMe] = useState<Boolean | null>(null);
@@ -77,6 +84,23 @@ const Message = (props) => {
     };
     checkIfMe();
   }, [user]);
+
+  useEffect(() => {
+    if (!message.content || !user?.publicKey) {
+      return;
+    }
+    const decryptMessage = async () => {
+      //decrypt message.content
+      const ourSecretKeyString = await getMyPrivateKey();
+      const sharedKey = box.before(
+        stringToUint8Array(user?.publicKey),
+        stringToUint8Array(ourSecretKeyString)
+      );
+      const decrypted = decrypt(sharedKey, message.content);
+      setDecryptedContent(decrypted.message);
+    };
+    decryptMessage();
+  }, [message, user]);
 
   const setAsRead = () => {
     if (isMe == false && message.status !== "READ") {
@@ -159,9 +183,9 @@ const Message = (props) => {
           </View>
         )}
         {soundURI && <AudioPlayer soundURI={soundURI} />}
-        {!!message.content && (
+        {!!decryptedContent && (
           <Text style={{ color: isMe ? "black" : "white" }}>
-            {isDeleted ? "message deleted " : message.content}
+            {isDeleted ? "message deleted " : decryptedContent}
           </Text>
         )}
         {isMe && message.status !== "SENT" && !!message.status && (

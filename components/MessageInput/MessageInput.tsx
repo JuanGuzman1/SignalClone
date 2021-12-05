@@ -8,6 +8,7 @@ import {
   Platform,
   Image,
   Text,
+  Alert,
 } from "react-native";
 import {
   AntDesign,
@@ -25,6 +26,15 @@ import { v4 as uuidv4 } from "uuid";
 import { Audio, AVPlaybackStatus } from "expo-av";
 import AudioPlayer from "../AudioPlayer";
 import MessageComponent from "../Message";
+import { ChatRoomUser } from "../../src/models";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/core";
+import { box } from "tweetnacl";
+import {
+  encrypt,
+  getMyPrivateKey,
+  stringToUint8Array,
+} from "../../utils/crypto";
 
 const MessageInput = ({ chatRoom, messageReplyTo, removeMessageReplyTo }) => {
   const [message, setMessage] = useState("");
@@ -33,6 +43,7 @@ const MessageInput = ({ chatRoom, messageReplyTo, removeMessageReplyTo }) => {
   const [progress, setProgress] = useState(0);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [soundURI, setSoundURI] = useState<string | null>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -51,19 +62,63 @@ const MessageInput = ({ chatRoom, messageReplyTo, removeMessageReplyTo }) => {
     })();
   }, []);
 
+  const sendMessageToUser = async (user, fromUserID) => {
+    //send message
+    const ourSecretKeyString = await getMyPrivateKey();
+    if (!ourSecretKeyString) {
+      Alert.alert(
+        "You haven't set your keypair yet",
+        "Go to settings, and generate a new keypair",
+        [
+          {
+            text: "Open Settings",
+            onPress: () => navigation.navigate("Settings"),
+          },
+        ]
+      );
+      return;
+    }
+
+    if (!user.publicKey) {
+      Alert.alert(
+        "The user haven't set his keypair yet",
+        "Until the user generates the keypair, you cannot securely send messages"
+      );
+      return;
+    }
+
+    const sharedKey = box.before(
+      stringToUint8Array(user.publicKey),
+      stringToUint8Array(ourSecretKeyString)
+    );
+
+    const encryptedMessage = encrypt(sharedKey, { message });
+
+    const newMessage = await DataStore.save(
+      new Message({
+        content: encryptedMessage,
+        userID: fromUserID,
+        forUserID: user.id,
+        chatroomID: chatRoom.id,
+        status: "SENT",
+        replyToMessageID: messageReplyTo?.id,
+      })
+    );
+    // updateLastMessage(newMessage);
+  };
+
   const sendMessage = async () => {
     try {
       const user = await Auth.currentAuthenticatedUser();
-      const newMessage = await DataStore.save(
-        new Message({
-          content: message,
-          userID: user.attributes.sub,
-          chatroomID: chatRoom.id,
-          status: "SENT",
-          replyToMessageID: messageReplyTo?.id,
-        })
+      //get all the users of this chatRoom
+      const users = await (await DataStore.query(ChatRoomUser))
+        .filter((cru) => cru.chatroom.id === chatRoom.id)
+        .map((usr) => usr.user);
+      //for each user, encrypt the content with his public key  and save it as a new message
+      await Promise.all(
+        users.map((usr) => sendMessageToUser(usr, user.attributes.sub))
       );
-      updateLastMessage(newMessage);
+
       resetFields();
     } catch (error) {
       console.log(error);

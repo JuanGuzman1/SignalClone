@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
 import { Auth, DataStore } from "aws-amplify";
-import { generateKeyPair } from "../utils/crypto";
+import { generateKeyPair, PRIVATE_KEY } from "../utils/crypto";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { User } from "../src/models";
 
 const Settings = () => {
   const logOut = async () => {
@@ -12,7 +14,22 @@ const Settings = () => {
     //generate public/private key
     const { publicKey, secretKey } = generateKeyPair();
     //save private key to Async storage
+    await AsyncStorage.setItem(PRIVATE_KEY, secretKey.toString());
     //save public key to userModel in datastore
+    const userData = await Auth.currentAuthenticatedUser();
+    const dbUser = await DataStore.query(User, userData.attributes.sub);
+
+    if (!dbUser) {
+      Alert.alert("User not found");
+      return;
+    }
+
+    await DataStore.save(
+      User.copyOf(dbUser, (updated) => {
+        updated.publicKey = publicKey.toString();
+      })
+    );
+    Alert.alert("Successfully updated.");
   };
   return (
     <View>

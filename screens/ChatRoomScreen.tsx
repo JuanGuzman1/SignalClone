@@ -10,7 +10,7 @@ import {
 import Message from "../components/Message";
 import MessageInput from "../components/MessageInput";
 import { useNavigation, useRoute } from "@react-navigation/core";
-import { DataStore, SortDirection } from "aws-amplify";
+import { DataStore, SortDirection, Auth } from "aws-amplify";
 import { Message as MessageModel, ChatRoom } from "../src/models";
 
 const ChatRoomScreen = () => {
@@ -52,9 +52,11 @@ const ChatRoomScreen = () => {
     if (!chatRoom) {
       return;
     }
+    const authUser = await Auth.currentAuthenticatedUser();
+    const myId = authUser.attributes.sub;
     const fetchedMessages = await DataStore.query(
       MessageModel,
-      (message) => message.chatroomID("eq", chatRoom?.id),
+      (message) => message.chatroomID("eq", chatRoom?.id).forUserID("eq", myId),
       {
         sort: (message) => message.createdAt(SortDirection.DESCENDING),
       }
